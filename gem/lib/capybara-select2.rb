@@ -45,8 +45,10 @@ module Capybara
     private
 
     def select_option(value)
-      wait_for_option_with_text(value)
-      find(:xpath, "//body").find(select2_option_selector, text: value).click
+      clicked = wait_for_option_with_text(value)
+      unless clicked
+        find(:xpath, "//body").find(select2_option_selector, text: value).click
+      end
     end
 
     def select2_option_selector
@@ -58,13 +60,16 @@ module Capybara
     end
 
     def wait_for_option_with_text(value)
+      clicked = false
       begin
         Timeout.timeout(2) do
-          sleep(0.1) until page.has_selector?(select2_option_selector, text: value)
+          sleep(0.1) unless page.has_selector?(select2_option_selector, text: value)
         end
       rescue TimeoutError
         find(:xpath, "//body").find(select2_option_selector, text: value).click
+        clicked = true
       end
+      clicked
     end
 
   end
